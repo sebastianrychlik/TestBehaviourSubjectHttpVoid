@@ -1,0 +1,11 @@
+<p></p>
+<p><a href="https://jsonplaceholder.typicode.com/" target="_blank">We use Free fake API for testing and prototyping</a>
+</p>
+
+<div *ngIf="bookService.book$ | async">
+    <h1>Book:</h1>
+    <h3>userId: {{(bookService.book$ | async)?.userId}}</h3>
+    <h3>id: {{(bookService.book$ | async)?.id}}</h3>
+    <h3>title: {{(bookService.book$ | async)?.title}}</h3>
+    <h3>completed: {{(bookService.book$ | async)?.completed}}</h3>
+</div>
