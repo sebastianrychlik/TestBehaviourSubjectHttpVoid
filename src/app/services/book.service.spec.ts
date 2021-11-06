@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import {
   HttpClientTestingModule,
@@ -23,26 +23,51 @@ describe('BookService', () => {
     httpTestingController = TestBed.inject(HttpTestingController);
     component = new BookComponent(service);
   });
-  // afterEach(() => {
-  //   service = null;
-  //   component = null;
-  // });
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
   describe('Method: httpGetBook', () => {
-    it('should be called updateBook method..', () => {
-      component.ngOnInit();
-      expect(service.updateBook).toHaveBeenCalled();
-    });
+    let httpMock: HttpTestingController;
 
-    it('should call the `updateBook` method on the `BookService`', () => {
+    it('should be called updateBook method..', fakeAsync(() => {
+      const response = {
+        userId: 1,
+        id: 1,
+        title: 'delectus aut autem',
+        completed: false,
+      } as Book;
+      jasmine.clock().install();
+      const spy = spyOn(service, 'updateBook');
+      component.ngOnInit();
+      let bookRequest = httpTestingController.expectOne(
+        'https://jsonplaceholder.typicode.com/todos/1'
+      );
+      bookRequest.flush(response);
+      jasmine.clock().tick(1000);
+      expect(spy).toHaveBeenCalled();
+      jasmine.clock().uninstall();
+    }));
+
+    it('should call the `updateBook` method on the `BookService`', fakeAsync(() => {
+      const response = {
+        userId: 1,
+        id: 1,
+        title: 'delectus aut autem',
+        completed: false,
+      } as Book;
+      jasmine.clock().install();
       const spy = spyOn(service, 'updateBook');
       service.httpGetBook();
+      let bookRequest = httpTestingController.expectOne(
+        'https://jsonplaceholder.typicode.com/todos/1'
+      );
+      bookRequest.flush(response);
+      jasmine.clock().tick(2000);
       expect(spy).toHaveBeenCalled();
-    });
+      jasmine.clock().uninstall();
+    }));
   });
 
   describe('Observable book$ tests', () => {
@@ -61,12 +86,15 @@ describe('BookService', () => {
         title: 'delectus aut autem',
         completed: false,
       } as Book;
-
+      // scheduler.run(({ expectObservable }) => {
+      //   service.updateBook(source);
+      //   expectObservable(service.book$).toBe('(a)', { a: source });
+      // });
       scheduler.run(({ expectObservable }) => {
         service.updateBook(source);
-        const expectedMarable = '(a|)';
-        const expected$ = of(source);
-        expectObservable(service.book$).toBe(expectedMarable, expected$);
+        const expectedMarable = '(a)';
+        const expected = { a: source };
+        expectObservable(service.book$).toBe(expectedMarable, expected);
       });
     });
   });
