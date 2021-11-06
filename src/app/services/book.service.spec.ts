@@ -4,20 +4,15 @@ import {
   HttpClientTestingModule,
   HttpTestingController,
 } from '@angular/common/http/testing';
+import { TestScheduler } from 'rxjs/testing';
 import { BookService } from './book.service';
 import { Book } from '../models/book.model';
 import { BookComponent } from '../book/book.component';
+import { of } from 'rxjs';
 
 describe('BookService', () => {
   let service: BookService, httpTestingController: HttpTestingController;
   let component: BookComponent;
-
-  const expected = {
-    userId: 1,
-    id: 1,
-    title: 'delectus aut autem',
-    completed: false,
-  } as Book;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -47,6 +42,32 @@ describe('BookService', () => {
       const spy = spyOn(service, 'updateBook');
       service.httpGetBook();
       expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('Observable book$ tests', () => {
+    let scheduler: TestScheduler;
+
+    beforeEach(
+      () =>
+        (scheduler = new TestScheduler((actual, expected) => {
+          expect(actual).toEqual(expected);
+        }))
+    );
+    it('should be emited an Observable (type Book) by `book$`', () => {
+      const source = {
+        userId: 1,
+        id: 1,
+        title: 'delectus aut autem',
+        completed: false,
+      } as Book;
+
+      scheduler.run(({ expectObservable }) => {
+        service.updateBook(source);
+        const expectedMarable = '(a|)';
+        const expected$ = of(source);
+        expectObservable(service.book$).toBe(expectedMarable, expected$);
+      });
     });
   });
 });
